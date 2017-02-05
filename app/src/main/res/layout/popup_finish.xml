@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="120dp"
+        android:orientation="vertical"
+        android:gravity="top|center"
+        android:background="#ffffff">
+       <TextView
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:gravity="center"
+           android:layout_margin="5dp"
+           android:textColor="@color/theme"
+           android:text="저장하기 안하면 \n다 사라질텐데?"
+           android:textSize="27sp"
+           android:textStyle="bold"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_margin="3dp"
+                android:text="저장하러 가기"
+                android:id="@+id/popupCancel"
+                android:textStyle="bold"
+                android:background="@color/themeBtn"/>
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_margin="3dp"
+                android:id="@+id/popupFinish"
+                android:text="종료"
+                android:textStyle="bold"
+                android:background="@color/themeBtn"/>
+        </LinearLayout>
+
+
+
+    </LinearLayout>
+</LinearLayout>

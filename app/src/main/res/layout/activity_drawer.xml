@@ -14,17 +14,18 @@
         android:layout_height="50dp">
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:gravity="center"
             android:layout_margin="3dp"
             android:textColor="#ffffff"
-            android:textSize="30sp"
+            android:textSize="20sp"
+            android:textStyle="bold"
             android:id="@+id/drawer_top"
-            android:text="English" />
+            android:text="단어를 외우자" />
         <Button
             android:id="@+id/closedrawer"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="50dp"
+            android:layout_height="match_parent"
             android:layout_alignRight="@id/drawer_top"
             android:backgroundTint="#ffffff"
             android:background="@android:drawable/ic_menu_close_clear_cancel"/>
@@ -32,26 +33,34 @@
     <!--메뉴-->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="40dp"
         android:gravity="center"
         android:orientation="horizontal">
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_margin="3dp"
+            android:layout_margin="5dp"
             android:background="@color/themeBtn"
-            android:text="save"/>
+            android:text="저장하기"
+            android:textStyle="bold"
+            android:id="@+id/engSave" />
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="add"
-            android:layout_margin="3dp"
+            android:text="추가하기"
+            android:textStyle="bold"
+            android:layout_margin="5dp"
             android:background="@color/themeBtn"
             android:id="@+id/addMenu"
             android:layout_weight="1"/>
     </LinearLayout>
-       <ListView
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_marginBottom="3dp"
+        android:background="@color/theme"/>
+    <ListView
            android:layout_width="match_parent"
            android:layout_height="match_parent"
            android:id="@+id/listView">

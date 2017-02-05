@@ -99,7 +99,8 @@
                     android:layout_height="match_parent"
                     android:layout_margin="3dp"
                     android:background="#90ceff"
-                    android:text="파일로"
+                    android:text="붙여넣기"
+                    android:id="@+id/popupPaste"
                     android:textStyle="bold"
                     android:layout_weight="1"/>
                 <Button

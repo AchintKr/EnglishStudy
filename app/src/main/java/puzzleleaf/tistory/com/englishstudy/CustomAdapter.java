@@ -80,9 +80,12 @@ public class CustomAdapter extends BaseAdapter {
             btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    removeItem(position);
-                    notifyDataSetChanged();
-                    temp.setAdapter(me);
+                        Toast.makeText(context,"저장하기를 누르면 완전히 삭제됩니다.",Toast.LENGTH_SHORT).show();
+                        removeItem(position);
+                        notifyDataSetChanged();
+                        temp.setAdapter(me);
+
+
                 }
             });
 

@@ -1,11 +1,18 @@
 package puzzleleaf.tistory.com.englishstudy;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Intent;
+import android.graphics.drawable.ColorDrawable;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.ActionMode;
 import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -30,9 +37,8 @@ public class MainActivity extends AppCompatActivity {
     private Button closeDrawer;
     private DrawerLayout.DrawerListener myDrawerListener;
     private CustomAdapter adapter;
-    private Button itemAdd; //임시
+    private Button saveEngData; //임시
     private Button addMenu;
-    private EditText editText;
     private ListView listView;
     ArrayList<MyDataList> engData;
 
@@ -50,8 +56,21 @@ public class MainActivity extends AppCompatActivity {
     private Button menuAdd;
     private Button wordAdd;
     private Button addClose;
+    private Button popupPasate;
+    boolean manuNameFlag;
     View popupView;
 
+    //붙여넣기 popup
+    private PopupWindow pastePopup ;
+    private View pasteView;
+    private Button pasteAdd;
+    private Button pasteCancel;
+    private EditText pasteEdit;
+    ClipboardManager clipBoard;
+    ClipData.Item item ;
+
+    //종료 popup
+    private PopupWindow pop;
     //data
     String data ="";
 
@@ -59,36 +78,48 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); //화면 계속 켜짐
 
         engData = new ArrayList<>();
 
-        MyDataList temp = new MyDataList("Hello","expressway|n.고속도로/" +
-                "equip|v.(장비를)갖추어주다/" +
-                "entire|a.전체의,전부의/" +
-                "destination|n.행선의,도착의,목적지/" +
-                "delay|n.지연,지체\nv.지연시키다/");
-        engData.add(temp);
+        engData = MyValue.getEng(getApplicationContext());
 
-        temp = new MyDataList("Hello2","qeqweqweqweqweqweqw|n.고속도로/" +
-                "equip|v.(장비를)갖추어주다/" +
-                "entire|a.전체의,전부의/" +
-                "destination|n.행선의,도착의,목적지/" +
-                "delay|n.지연,지체\nv.지연시키다/");
-        engData.add(temp);
-
-        //팝업
-        popupView = getLayoutInflater().inflate(R.layout.popup_add, null);
-        mPopupWindow = new PopupWindow(popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 
         drawerInit(); //drawer 할당
         viewPagerInit(); // ViewPager 할당
 
-        Button btn = (Button)findViewById(R.id.test);
-        btn.setOnClickListener(new View.OnClickListener() {
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        if(pop!=null && pop.isShowing())
+        {
+            pop.dismiss();
+        }
+        View popView = getLayoutInflater().inflate(R.layout.popup_finish, null);
+        pop = new PopupWindow(popView, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        //popupView 에서 (LinearLayout 을 사용) 레이아웃이 둘러싸고 있는 컨텐츠의 크기 만큼 팝업 크기를 지정
+        pop.showAtLocation(popView, Gravity.CENTER, 0, 0);
+
+        Button cancel = (Button)popView.findViewById(R.id.popupCancel);
+        cancel.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                pop.dismiss();
             }
         });
+
+        final Button fini = (Button)popView.findViewById(R.id.popupFinish);
+        fini.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
+
+
     }
 
     //문자열 분해
@@ -116,10 +147,14 @@ public class MainActivity extends AppCompatActivity {
 
     void popupInit()
     {
-
+        manuNameFlag = false;
+        popupView = getLayoutInflater().inflate(R.layout.popup_add, null);
+        mPopupWindow = new PopupWindow(popupView, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         //popupView 에서 (LinearLayout 을 사용) 레이아웃이 둘러싸고 있는 컨텐츠의 크기 만큼 팝업 크기를 지정
         mPopupWindow.setFocusable(true);
+
         mPopupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0);
+
 
 
         menuAdd = (Button)popupView.findViewById(R.id.addMenuBtn);
@@ -128,6 +163,20 @@ public class MainActivity extends AppCompatActivity {
         meanEdit = (EditText)popupView.findViewById(R.id.addMean);
         wordAdd = (Button)popupView.findViewById(R.id.addBtn);
         addClose = (Button)popupView.findViewById(R.id.addClose);
+        popupPasate = (Button)popupView.findViewById(R.id.popupPaste);
+
+        popupPasate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(manuNameFlag ==false)
+                {
+                    Toast.makeText(getApplicationContext(), "설정 버튼을 눌러주세요.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                else
+                    popupPasteInit();
+            }
+        });
 
 
 
@@ -138,11 +187,12 @@ public class MainActivity extends AppCompatActivity {
                 if(!menuEdit.getText().toString().equals(""))
                 {
                     MyValue.saveTempMenu=menuEdit.getText().toString();
-                    Toast.makeText(getApplicationContext(),MyValue.saveTempMenu,Toast.LENGTH_LONG).show();
+                    manuNameFlag = true;
+                    Toast.makeText(getApplicationContext(),MyValue.saveTempMenu,Toast.LENGTH_SHORT).show();
                 }
                 else
                 {
-                    Toast.makeText(getApplicationContext(),"값을 입력하세요",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),"값을 입력하세요",Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -155,13 +205,12 @@ public class MainActivity extends AppCompatActivity {
                 {
                     MyValue.saveTempContent+=wordEdit.getText().toString()+"|"+
                             meanEdit.getText().toString()+"/";
-                    Toast.makeText(getApplicationContext(),MyValue.saveTempContent,Toast.LENGTH_LONG).show();
                     wordEdit.setText("");
                     meanEdit.setText("");
                 }
                 else
                 {
-                    Toast.makeText(getApplicationContext(),"값을 모두 입력하세요",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),"값을 모두 입력하세요",Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -170,18 +219,75 @@ public class MainActivity extends AppCompatActivity {
         addClose.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(manuNameFlag ==false)
+                {
+                    Toast.makeText(getApplicationContext(), "설정 버튼을 눌러주세요.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-                MyDataList temp = new MyDataList(MyValue.saveTempMenu,MyValue.saveTempContent);
-                adapterAddItem(temp);
-                MyValue.saveTempMenu ="";
-                MyValue.saveTempContent="";
-                if(mPopupWindow.isShowing())
-                    mPopupWindow.dismiss();
-                Toast.makeText(getApplicationContext(),"추가되었습니다.",Toast.LENGTH_LONG).show();
+                if(wordEdit.getText().toString().equals("") && meanEdit.getText().toString().equals("")) {
+                    MyDataList temp = new MyDataList(MyValue.saveTempMenu, MyValue.saveTempContent);
+                    adapterAddItem(temp);
+                    MyValue.saveTempMenu = "";
+                    MyValue.saveTempContent = "";
+
+                    if (mPopupWindow.isShowing())
+                        mPopupWindow.dismiss();
+                    Toast.makeText(getApplicationContext(), "추가되었습니다.", Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    Toast.makeText(getApplicationContext(), "추가하기를 눌러주세요.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    void popupPasteInit()
+    {
+        mPopupWindow.dismiss();
+        pasteView = getLayoutInflater().inflate(R.layout.popup_paste, null);
+        pastePopup = new PopupWindow(pasteView, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        //popupView 에서 (LinearLayout 을 사용) 레이아웃이 둘러싸고 있는 컨텐츠의 크기 만큼 팝업 크기를 지정
+
+        pastePopup.showAtLocation(pasteView, Gravity.CENTER, 0, 0);
+
+        pasteAdd = (Button)pasteView.findViewById(R.id.pasteAdd);
+        pasteCancel = (Button)pasteView.findViewById(R.id.pasteClose);
+        pasteEdit = (EditText)pasteView.findViewById(R.id.pasteEdit);
+
+
+        clipBoard = (ClipboardManager)getSystemService(CLIPBOARD_SERVICE);
+        item = clipBoard.getPrimaryClip().getItemAt(0);
+
+
+        pasteAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pasteEdit.setText(item.getText().toString());
+                MyValue.saveTempContent = pasteEdit.getText().toString();
             }
         });
 
+        pasteCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                MyDataList temp = new MyDataList(MyValue.saveTempMenu, MyValue.saveTempContent);
+                adapterAddItem(temp);
+                MyValue.saveTempMenu = "";
+                MyValue.saveTempContent = "";
+
+                Toast.makeText(getApplicationContext(), "추가되었습니다.", Toast.LENGTH_SHORT).show();
+                pastePopup.dismiss();
+            }
+        });
+
+
+
+
     }
+
 
 
     //뷰 페이저 초기화
@@ -208,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
         listView = (ListView)findViewById(R.id.listView);
         adapter = new CustomAdapter(getApplicationContext(),engData,listView);
         listView.setAdapter(adapter);
-
+        saveEngData = (Button)findViewById(R.id.engSave);
         addMenu = (Button)findViewById(R.id.addMenu);
 
         addMenu.setOnClickListener(new View.OnClickListener() {
@@ -218,6 +324,14 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        saveEngData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MyValue.saveEng(getApplicationContext(),engData);
+                Toast.makeText(getApplicationContext(),"저장완료",Toast.LENGTH_SHORT).show();
+            }
+        });
 
 
         myDrawerListener = new DrawerLayout.DrawerListener() {
@@ -261,8 +375,5 @@ public class MainActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
         listView.setAdapter(adapter);
     }
-
-
-
 
 }
